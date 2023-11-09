@@ -1,0 +1,35 @@
+pipeline
+{
+    agent any
+    stages{
+        stage("Checkout"){
+            steps
+            {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/AnithaKankanala/demo1.git']])
+            }
+        }
+        stage("Terraform init"){
+            steps
+            {
+                script{
+                    sh 'terraform init'
+                }
+            }
+        }
+        stage("Terraform plan")
+        {
+            steps{
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'c6695399-101f-44f9-8a68-d094afdadb2f', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
+                    sh 'terraform plan'
+                }
+            }
+        }
+        stage("Terraform apply"){
+            steps{
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'c6695399-101f-44f9-8a68-d094afdadb2f', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
+                    sh 'terraform apply --auto-approve'
+                }
+            }
+        }
+    }
+}
